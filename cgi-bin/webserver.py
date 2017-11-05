@@ -3,6 +3,7 @@
 import cgitb
 import cgi
 import backend
+import time
 
 cgitb.enable()    
 
@@ -29,14 +30,19 @@ for key in resultadoHTMLKeys:
 		else: #senao, ele usa a key sem argumento mesmo
 			listaComandos.insert(len(listaComandos),{'maq':key[3],'cmd':resultadoHTML[key].value,'arg':''})
 			
-#executando e imprimindo os resultados em HTML
-print 'Content-Type: text/html;charset=utf-8\r\n\r\n'
-print '<html><head><title>Resposta</title><meta charset="utf-8"/></head><body>'
-print '<a href="javascript:window.history.go(-1)">Voltar</a>'
+#executando, medindo o tempo e salvando os resultados da resposta em HTML
+inicio = time.time()
+respostaHTML = ''
 for comando in listaComandos:
-	print '<h3>Maquina #' + comando['maq'] + ' ($ ' + comando['cmd'] + ' ' + comando['arg'] + ')</h3>'
-	print '<div class="text"><pre>'
-	print backend.enviaComando(deamons[comando['maq']]['endereco'],deamons[comando['maq']]['porta'],comando['cmd'],comando['arg'])
-	print '</pre></div>'
-print '<a href="javascript:window.history.go(-1)">Voltar</a>'
-print '</body></html>'	
+	resposta = backend.enviaComando(deamons[comando['maq']]['endereco'],deamons[comando['maq']]['porta'],comando['cmd'],comando['arg'])
+	respostaHTML += '\t\t<div><h3>Maquina #' + comando['maq'] + ' ($ ' + comando['cmd'] + ' ' + comando['arg'] + ')</h3><pre>\n' + resposta + '\t\t</pre></div>\n'
+fim = time.time()
+
+#imprimindo os resultados em HTML
+print 'Content-Type: text/html;charset=utf-8\r\n\r\n'
+print '<html>\n\t<head>\n\t\t<title>Resposta</title>\n\t\t<meta charset="utf-8"/>\n\t</head>\n\t<body>'
+print '\t\t<a href="javascript:window.history.go(-1)">Voltar</a>'
+print "\t\t<h3>Resultado em %.3f ms</h3>" % ((fim - inicio)*1000)
+print respostaHTML
+print '\t\t<a href="javascript:window.history.go(-1)">Voltar</a>'
+print '\t</body></html>'
