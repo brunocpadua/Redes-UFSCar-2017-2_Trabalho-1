@@ -6,6 +6,9 @@ import backend
 
 cgitb.enable()    
 
+#configuracao do endereco e porta de cada maquina
+deamons = {'1':{'endereco':'localhost','porta':8000},'2':{'endereco':'localhost','porta':8001},'3':{'endereco':'localhost','porta':8002}}
+
 #pegando os parametros da pagina HTML inicial
 resultadoHTML = cgi.FieldStorage()
 
@@ -33,7 +36,7 @@ print '<a href="javascript:window.history.go(-1)">Voltar</a>'
 for comando in listaComandos:
 	print '<h3>Maquina #' + comando['maq'] + ' ($ ' + comando['cmd'] + ' ' + comando['arg'] + ')</h3>'
 	print '<div class="text"><pre>'
-	print backend.enviaComando(int(comando['maq'])-1,comando['cmd'],comando['arg'])
+	print backend.enviaComando(deamons[comando['maq']]['endereco'],deamons[comando['maq']]['porta'],comando['cmd'],comando['arg'])
 	print '</pre></div>'
 print '<a href="javascript:window.history.go(-1)">Voltar</a>'
 print '</body></html>'	
