@@ -19,20 +19,21 @@ for key in resultadoHTMLKeys:
 	#verifica se o key eh do tipo 'maqX_comando' (comando sem argumento)
 	if '_' in key:
 		#se existir alguma outra key do tipo 'maqX-comando' (comando com argumento)
-		#entao, ele da preferencia a esse key e nao usa a atual
-		if not key[:4] + '-' + key[5:] in resultadoHTMLKeys:
+		#entao, usa a key com o argumento 
+		keyComArg = key[:4] + '-' + key[5:]
+		if keyComArg in resultadoHTMLKeys:
+			listaComandos.insert(len(listaComandos),{'maq':key[3],'cmd':key[5:],'arg':resultadoHTML[keyComArg].value})
+		else: #senao, ele usa a key sem argumento mesmo
 			listaComandos.insert(len(listaComandos),{'maq':key[3],'cmd':resultadoHTML[key].value,'arg':''})
-	else: #senao, eh do tipo 'maqX-comando' (comando com argumento)
-		
-			listaComandos.insert(len(listaComandos),{'maq':key[3],'cmd':key[5:],'arg':resultadoHTML[key].value})
-
-print("Content-Type: text/html;charset=utf-8\r\n\r\n")
-print("Teste!")
-
-print '<p>'
+			
+#executando e imprimindo os resultados em HTML
+print 'Content-Type: text/html;charset=utf-8\r\n\r\n'
+print '<html><head><title>Resposta</title><meta charset="utf-8"/></head><body>'
+print '<a href="javascript:window.history.go(-1)">Voltar</a>'
 for comando in listaComandos:
+	print '<h3>Maquina #' + comando['maq'] + ' ($ ' + comando['cmd'] + ' ' + comando['arg'] + ')</h3>'
+	print '<div class="text"><pre>'
 	print backend.enviaComando(int(comando['maq'])-1,comando['cmd'],comando['arg'])
-print '</p>'
-
-
-	
+	print '</pre></div>'
+print '<a href="javascript:window.history.go(-1)">Voltar</a>'
+print '</body></html>'	
