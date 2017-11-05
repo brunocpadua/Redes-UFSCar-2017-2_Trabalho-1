@@ -7,6 +7,12 @@ def crc16(packet):
 	sum = (sum2 << 8) | sum1
 	return format((~sum & 0xFFFF),'016b')
 
+def confereCheckSum(pacote):
+	checksum = pacote[80:96]
+	#zerando para o pacote ficar igual a quando seu Checksum foi calculado
+	pacote = pacote[:80] + '0000000000000000' + pacote[96:]
+	return  checksum == crc16(pacote)
+	
 def decodificaComandoPacote(pacote):
 	version = pacote[0:4]
 	IHL = pacote[4:8]
@@ -35,6 +41,11 @@ def decodificaComandoPacote(pacote):
 	ipOrigem = BinarioparaIP(sourceAddress)
 	ipDestino = BinarioparaIP(destinationAddress)
 	id = int(identification,2)
+	
+	#verificando erros do pacote
+	if not confereCheckSum(pacote): #verifica checksum
+		raise Exception(comando,'Checksum nao confere, envie novamente a requisicao!',ipOrigem,ipDestino,timeToLive)
+	
 	return (comando,parametros,ipOrigem,ipDestino,timeToLive,id)
 	
 #Referencia https://stackoverflow.com/questions/19744206/converting-dot-decimal-ip-address-to-binary-python
@@ -72,7 +83,6 @@ def codificaPacote(comando, parametros, ipOrigem, ipDestino, flags, ttl, id):
 	headerChecksum = '0000000000000000' #calculado abaixo
 	sourceAddress = IPparaBinario(ipOrigem)
 	destinationAddress = IPparaBinario(ipDestino)
-	
 	options = ''.join(format(ord(x), '08b') for x in parametros)
 	
 	totalLength = format(len(version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options),'016b')
