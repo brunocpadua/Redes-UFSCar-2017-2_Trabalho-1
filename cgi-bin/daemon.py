@@ -41,12 +41,19 @@ class ThreadedServer(object):
 				if packet:
 					#Decodificando pacote
 					print 'Requisicao recebida na porta ' + str(self.port)
-					comando,parametros,ipOrigem,ipDestino,ttl,id = pacotes.decodificaComandoPacote(packet);
+					try:
+						comando,parametros,ipOrigem,ipDestino,ttl,id = pacotes.decodificaComandoPacote(packet);
+					except Exception as e:
+						packet = pacotes.codificaPacote(e.args[0], e.args[1], e.args[2], e.args[3], '111', e.args[4], 0)
+						cliente.send(packet)
+						print 'Erro: Checksum nao confere'
+						print ''
+					
+					#Executando comando
 					print 'Executando comando ' + comando + ' ' + parametros 
 					resposta = executaComando(comando,parametros)
-					
 					#Enviando a resposta
-					packet = pacotes.codificaPacote(comando, resposta, ipOrigem, ipDestino, '111', ttl, id)
+					packet = pacotes.codificaPacote(comando, resposta, ipOrigem, ipDestino, '111', ttl, 0)
 					cliente.send(packet)
 					print 'Resposta enviada!'
 					print ''
