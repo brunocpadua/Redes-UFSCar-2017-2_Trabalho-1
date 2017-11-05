@@ -10,7 +10,6 @@ def executaComando(comando,argumentos):
 	if('|' in argumentos or ';' in argumentos or '>' in argumentos):
 		return 'Existem parametros maliciosos nesta requisicao'
 	
-	
 	#Executando o comando
 	try:
 		output = subprocess.check_output(comando + ' ' + argumentos, shell=True)
@@ -41,7 +40,7 @@ class ThreadedServer(object):
 				packet = cliente.recv(1024)
 				if packet:
 					#Decodificando pacote
-					print 'Requisicao recebida'
+					print 'Requisicao recebida na porta ' + str(self.port)
 					comando,parametros,ipOrigem,ipDestino,ttl,id = pacotes.decodificaComandoPacote(packet);
 					print 'Executando comando ' + comando + ' ' + parametros 
 					resposta = executaComando(comando,parametros)
@@ -50,6 +49,7 @@ class ThreadedServer(object):
 					packet = pacotes.codificaPacote(comando, resposta, ipOrigem, ipDestino, '111', ttl, id)
 					cliente.send(packet)
 					print 'Resposta enviada!'
+					print ''
 				else:
 					raise error('Cliente desconectado')
 			except:
