@@ -9,3 +9,37 @@ Primeiro trabalho da disciplina de Redes de Computadores, oferecida no segundo s
 Descrição completa do projeto: [projeto1_v2.pdf](https://github.com/brunoinfo/Redes-UFSCar-2017-2_Trabalho-1/blob/master/doc/projeto1_v2.pdf)
 
 Tutorial para instalação da VM utilizada: [VM-desenvolvimento.pdf](https://github.com/brunoinfo/Redes-UFSCar-2017-2_Trabalho-1/blob/master/doc/VM-desenvolvimento.pdf)
+
+## Tutorial de uso
+
+**1. Instalação da VM**
+
+- Instalar VM de acordo com o tutorial fornecido em [VM-desenvolvimento.pdf](https://github.com/brunoinfo/Redes-UFSCar-2017-2_Trabalho-1/blob/master/doc/VM-desenvolvimento.pdf).
+
+**2. Cópia dos arquivos da pasta cgi-bin**
+
+- Copiar os arquivos da pasta cgi-bin do GitHub para a pasta */usr/lib/cgi-bin* na VM.
+- Alterar as permissões dos arquivos *daemon.py* e *webserver.py* para sua execução. Podem ser utilizados os seguintes comandos dentro da pasta */usr/lib/cgi-bin*:
+
+```
+chmod 775 webserver.py
+chmod 775 daemon.py
+```
+
+**3. Cópia do script *run.sh***
+- Para uma pasta qualquer, por exemplo a pasta */home/aluno*, copiar o arquivo *run.sh* do GitHub para a VM.
+- Alterar as permissões do arquivo *run.sh* para execução. Pode ser utilizado o comando dentro da pasta do arquivo:
+
+```
+chmod 775 run.sh
+```
+
+**4. Executar o script *run.sh***
+- Executar o script *run.sh* usando o comando:
+
+```
+./run.sh
+```
+
+**5. Enviar comandos a partir da página HTML**
+- Acessar em um navegador externo a VM o endereço 192.168.56.101 (mesmo do [VM-desenvolvimento.pdf](https://github.com/brunoinfo/Redes-UFSCar-2017-2_Trabalho-1/blob/master/doc/VM-desenvolvimento.pdf)).
