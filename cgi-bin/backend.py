@@ -13,12 +13,12 @@ def enviaComando(endereco, porta, comando, parametros):
 		return 'Conexao recusada!\nTalvez a maquina esteja desligada'
 		
 	#Codificando e enviando pacote
-	packet = pacotes.codificaPacote(comando,parametros,ipOrigem,ipDestino,'000','00001111',0)
+	packet = pacotes.codificaPacote(comando,parametros,'',ipOrigem,ipDestino,'000','00001111',0)
 	cliente.send(packet) 
 	
 	#Recebendo e decodificando pacote
 	packet = cliente.recv(8192) 
-	comando,resposta,ipOrigem,ipDestino,ttl,id = pacotes.decodificaComandoPacote(packet);
+	comando,parametros,resposta,ipOrigem,ipDestino,ttl,id = pacotes.decodificaComandoPacote(packet);
 	
 	cliente.close()
 	return resposta

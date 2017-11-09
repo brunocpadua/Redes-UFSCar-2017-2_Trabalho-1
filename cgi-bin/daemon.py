@@ -15,6 +15,7 @@ def executaComando(comando,argumentos):
 		output = subprocess.check_output(comando + ' ' + argumentos, shell=True)
 	except subprocess.CalledProcessError:                                                                                                   
 		return "Comando invalido"
+
 	return output
 	
 #Referencia https://stackoverflow.com/questions/23828264
@@ -40,11 +41,11 @@ class ThreadedServer(object):
 				packet = cliente.recv(1024)
 				if packet:
 					#Decodificando pacote
-					print 'Requisicao recebida na porta ' + str(self.port)
+					print 'Requisicao recebida na porta ' + str(self.port)	
 					try:
-						comando,parametros,ipOrigem,ipDestino,ttl,id = pacotes.decodificaComandoPacote(packet);
+						comando,parametros,dados,ipOrigem,ipDestino,ttl,id = pacotes.decodificaComandoPacote(packet);
 					except Exception as e:
-						packet = pacotes.codificaPacote(e.args[0], e.args[1], e.args[2], e.args[3], '111', e.args[4], 0)
+						packet = pacotes.codificaPacote(e.args[0], '', e.args[1], e.args[2], e.args[3], '111', e.args[4], 0) #editar depois
 						cliente.send(packet)
 						print 'Erro: Checksum nao confere'
 						print ''
@@ -53,7 +54,7 @@ class ThreadedServer(object):
 					print 'Executando comando ' + comando + ' ' + parametros 
 					resposta = executaComando(comando,parametros)
 					#Enviando a resposta
-					packet = pacotes.codificaPacote(comando, resposta, ipOrigem, ipDestino, '111', ttl, 0)
+					packet = pacotes.codificaPacote(comando, '', resposta, ipOrigem, ipDestino, '111', ttl, 0)
 					cliente.send(packet)
 					print 'Resposta enviada!'
 					print ''

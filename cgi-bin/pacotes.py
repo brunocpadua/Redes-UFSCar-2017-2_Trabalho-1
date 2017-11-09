@@ -9,13 +9,16 @@ def crc16(packet):
 
 def confereCheckSum(pacote):
 	checksum = pacote[80:96]
+	IHL = int(pacote[4:8],2)
+	cabecalho = pacote[0:160+32*(IHL-5)] #
 	#zerando para o pacote ficar igual a quando seu Checksum foi calculado
-	pacote = pacote[:80] + '0000000000000000' + pacote[96:]
-	return  checksum == crc16(pacote)
-	
+	cabecalho = cabecalho[:80] + '0000000000000000' + cabecalho[96:]
+	return checksum == crc16(cabecalho)
+
+
 def decodificaComandoPacote(pacote):
 	version = pacote[0:4]
-	IHL = pacote[4:8]
+	IHL = int(pacote[4:8],2)
 	typeOfService = pacote[8:16]
 	totalLength = int(pacote[16:32],2)
 	identification = pacote[32:48]
@@ -26,7 +29,8 @@ def decodificaComandoPacote(pacote):
 	headerChecksum = pacote[80:96]
 	sourceAddress = pacote[96:128]
 	destinationAddress = pacote[128:160]
-	options = pacote[160:totalLength];
+	options = pacote[160:160+32*(IHL-5)]
+	data = pacote[160+32*(IHL-5):totalLength];
 	
 	if (protocol == '00000001'):
 		comando = 'ps'
@@ -38,6 +42,8 @@ def decodificaComandoPacote(pacote):
 		comando = 'uptime'
 	
 	parametros = ''.join(chr(int(options[i*8:i*8+8],2)) for i in range(0,len(options)/8))
+	dados = ''.join(chr(int(data[i*8:i*8+8],2)) for i in range(0,len(data)/8))
+	
 	ipOrigem = BinarioparaIP(sourceAddress)
 	ipDestino = BinarioparaIP(destinationAddress)
 	id = int(identification,2)
@@ -46,7 +52,7 @@ def decodificaComandoPacote(pacote):
 	if not confereCheckSum(pacote): #verifica checksum
 		raise Exception(comando,'Checksum nao confere, envie novamente a requisicao!',ipOrigem,ipDestino,timeToLive)
 	
-	return (comando,parametros,ipOrigem,ipDestino,timeToLive,id)
+	return (comando,parametros,dados,ipOrigem,ipDestino,timeToLive,id)
 	
 #Referencia https://stackoverflow.com/questions/19744206/converting-dot-decimal-ip-address-to-binary-python
 def IPparaBinario(IP):
@@ -55,9 +61,9 @@ def IPparaBinario(IP):
 def BinarioparaIP(binario):
 	return '.'.join(str(int(binario[8*i:8*i+8],2),) for i in range(0,4))
 	
-def codificaPacote(comando, parametros, ipOrigem, ipDestino, flags, ttl, id):
+def codificaPacote(comando, parametros, dados, ipOrigem, ipDestino, flags, ttl, id):
 	version = '0010' #versao 2
-	IHL = '1010' #10 bytes
+	IHL = '0000' #calculado abaixo
 	typeOfService = '00000000'
 	totalLength = '0000000000000000' #calculado abaixo
 	identification = format(id,'016b')
@@ -84,7 +90,13 @@ def codificaPacote(comando, parametros, ipOrigem, ipDestino, flags, ttl, id):
 	sourceAddress = IPparaBinario(ipOrigem)
 	destinationAddress = IPparaBinario(ipDestino)
 	options = ''.join(format(ord(x), '08b') for x in parametros)
+	#faz o padding
+	while (len(options)%32) != 0:
+		options += '0'
+	data = ''.join(format(ord(x), '08b') for x in dados)
 	
-	totalLength = format(len(version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options),'016b')
+	#calculando as informacoes que faltavam
+	IHL = format((len(version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options)/32),'04b')
+	totalLength = format(len(version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options + data),'016b')
 	headerChecksum = crc16(version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options)
-	return version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options
+	return version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options + data
