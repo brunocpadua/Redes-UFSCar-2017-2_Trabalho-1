@@ -1,19 +1,18 @@
-#Referencia https://en.wikipedia.org/wiki/Fletcher%27s_checksum
-def crc16(packet):
-	sum1, sum2 = 0, 0
-	for i in range(0,len(packet)):
-		sum1 = (sum1 + int(packet[i],2)) % 255
-		sum2 = (sum2 + sum1) % 255
-	sum = (sum2 << 8) | sum1
-	return format((~sum & 0xFFFF),'016b')
-
+#Referencia: livro do Kurose (5.2.2 da 5 ed), RFC 1071 e http://slideplayer.com/slide/6672096/
+def checksum(packet):
+	sum = 0
+	for i in range(0,len(packet),16):
+		sum += int(packet[i:i+16],2)
+		sum = (sum >> 16) + (sum & 0xFFFF)
+	return format(~sum & 0xFFFF,'016b')
+	
 def confereCheckSum(pacote):
-	checksum = pacote[80:96]
+	headerChecksum = pacote[80:96]
 	IHL = int(pacote[4:8],2)
-	cabecalho = pacote[0:160+32*(IHL-5)] #
+	cabecalho = pacote[0:160+32*(IHL-5)]
 	#zerando para o pacote ficar igual a quando seu Checksum foi calculado
 	cabecalho = cabecalho[:80] + '0000000000000000' + cabecalho[96:]
-	return checksum == crc16(cabecalho)
+	return headerChecksum == checksum(cabecalho)
 
 
 def decodificaComandoPacote(pacote):
@@ -98,5 +97,5 @@ def codificaPacote(comando, parametros, dados, ipOrigem, ipDestino, flags, ttl, 
 	#calculando as informacoes que faltavam
 	IHL = format((len(version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options)/32),'04b')
 	totalLength = format(len(version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options + data),'016b')
-	headerChecksum = crc16(version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options)
+	headerChecksum = checksum(version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options)
 	return version + IHL + typeOfService + totalLength + identification + flags + fragmentOffset + timeToLive + protocol + headerChecksum + sourceAddress + destinationAddress + options + data
